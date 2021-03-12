@@ -1,0 +1,5 @@
+# MacOS specific rubbish
+.DS_Store
+# Output figures folder
+Figures/
+Figures.bak/
