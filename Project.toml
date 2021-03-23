@@ -1,3 +1,8 @@
+name = "SAIC"
+uuid = "0bc24cff-1535-44c3-bec1-43bf04a020ae"
+authors = ["Lorenzo Duso <duso@mpi-cbg.de>", "Tommaso Bianucci <bianucci@mpi-cbg.de>"]
+version = "0.1.0"
+
 [deps]
 DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"

@@ -37,8 +37,7 @@ Translation table between the parameter names used in the code vs. in the paper:
                                              fname::Union{Nothing,String}="MassControl_x$(N_SSA)", # The filename should NOT contain the extension
                                              dumpfname::Union{Nothing,String}=fname, # The filename should NOT contain the extension
                                              readFromDump::Bool=false,
-                                             # figSize=(1280,920), # (W, H) size for the figure,
-                                             figSize=(600,1150), # (W, H) size for the figure,
+                                             figSize=(600,1150*0.83), # (W, H) size for the figure,
                                              fontsizeScale=1.6, # to be used with scalefontsizes(...)
                                           )
     mkpath(outdir)
@@ -80,17 +79,28 @@ Translation table between the parameter names used in the code vs. in the paper:
 
     pTot = nothing
     try
+        local lmargin, tmargin, rmargin = 5mm, 5mm, 5mm
+        local tx, ty = -27mm, 4.5mm
+
         # Panel 1: One SSA trajectory
-        p1 = plot(; title=L"(a)", titlepos=:left)
+        p1 = plot(; left_margin=lmargin, top_margin=tmargin, right_margin=rmargin)
         plot!(t_ssa, mom_ssa[2,:], color="magenta", label=L"Z_1", lw=1., legend=:topleft)
         plot!(t_ssa, mom_ssa[3,:], color="orange", label=L"Z_2", lw=1., legend=:topleft)
         plot!(t_ssa, mom_ssa[6,:], color="green", label=L"Q_2", lw=1., legend=:topleft)
         plot!(t_setpoint, val_setpoint, color="black", linestyle=:dash, label=L"\omega^*", legend=:topleft)
-        xlabel!("Time [a.u.]")
+        # xlabel!("Time [a.u.]")
         ylabel!("Abundance")
+        plot!(; # Float title 
+            title=L"(a)", 
+            titlepos=:left, 
+            grid=false, showaxis=false, ticks=false,
+            inset=(1, bbox(tx,ty, 20mm,20mm, :top, :left)), 
+            subplot=2,
+            bg_inside=nothing,
+            )
 
         # Panel 2: Averages
-        p2 = plot(; title=L"(b)", titlepos=:left)
+        p2 = plot(; left_margin=lmargin, top_margin=tmargin, right_margin=rmargin)
         plot!(time_all, Moms[2,:], ribbon=( sqrt.(Vars[2,:]), sqrt.(Vars[2,:]) ),
                                 fillalpha=fillalpha,
                                 color="magenta", legend=:topleft, label=L"\langle Z_1 \rangle")
@@ -103,11 +113,19 @@ Translation table between the parameter names used in the code vs. in the paper:
                                      color="green",
                                      legend=:topleft, label=L"\langle Q_2 \rangle")
         plot!(t_setpoint, val_setpoint, color="black", linestyle=:dash, legend=:topleft, label=L"\omega^*")
-        xlabel!("Time [a.u.]")
+        # xlabel!("Time [a.u.]")
         ylabel!("Abundance")
+        plot!(; # Float title 
+            title=L"(b)", 
+            titlepos=:left, 
+            grid=false, showaxis=false, ticks=false,
+            inset=(1, bbox(tx,ty, 20mm,20mm, :top, :left)), 
+            subplot=2,
+            bg_inside=nothing,
+            )
 
         # Panel 3: Number of cells
-        p3 = plot(; title=L"(c)", titlepos=:left)
+        p3 = plot(; left_margin=lmargin, top_margin=tmargin, right_margin=rmargin)
         local N = Moms[4,:]
         local ylims = minimum(N)==maximum(N) ? (0,2*maximum(N)) : (0,Inf)
         plot!(time_all, N, ribbon=( sqrt.(Vars[4,:]), sqrt.(Vars[4,:]) ),
@@ -119,21 +137,29 @@ Translation table between the parameter names used in the code vs. in the paper:
                                 )
         xlabel!("Time [a.u.]")
         ylabel!("Number of cells")
+        plot!(; # Float title 
+            title=L"(c)", 
+            titlepos=:left, 
+            grid=false, showaxis=false, ticks=false,
+            inset=(1, bbox(tx,ty, 20mm,20mm, :top, :left)), 
+            subplot=2,
+            bg_inside=nothing,
+            )
 
-        # Panel 4: pooled PDF of X2
-        K = computePooledPDF(n, 5; bandwidth=pdfBandwidth)
-        numCellsMean = Moms[4, :]
-        expectedMean = val_setpoint[end] / numCellsMean[end]
-        p4 = plot(; title=L"(d)", titlepos=:left)
-        plot!(K.x, K.density; color="green",
-                                label=L"pdf(Q_2)",
-                                xlim=(max(0,minimum(K.x)),Inf),
-                                )
-        vline!([expectedMean]; color="black",
-                                linestyle=:dash,
-                                label=L"\frac{ ω^* }{ \langle N \rangle }")
-        xlabel!("Protein mass per cell")
-        ylabel!("Probability density")
+        # # Panel 4: pooled PDF of X2
+        # K = computePooledPDF(n, 5; bandwidth=pdfBandwidth)
+        # numCellsMean = Moms[4, :]
+        # expectedMean = val_setpoint[end] / numCellsMean[end]
+        # p4 = plot(; title=L"(d)", titlepos=:left)
+        # plot!(K.x, K.density; color="green",
+        #                         label=L"pdf(Q_2)",
+        #                         xlim=(max(0,minimum(K.x)),Inf),
+        #                         )
+        # vline!([expectedMean]; color="black",
+        #                         linestyle=:dash,
+        #                         label=L"\frac{ ω^* }{ \langle N \rangle }")
+        # xlabel!("Protein mass per cell")
+        # ylabel!("Probability density")
 
         # # Panel 4b: summed PDF of X2
         # K = computeSummedPDF(n, 5; bandwidth=pdfBandwidth)
@@ -215,7 +241,7 @@ Translation table between the parameter names used in the code vs. in the paper:
                                  fname::Union{Nothing,String}="NumberControl_x$(N_SSA)", # The filename should NOT contain the extension
                                  dumpfname::Union{Nothing,String}=fname, # The filename should NOT contain the extension
                                  readFromDump::Bool=false,
-                                 figSize=(600,850), # (W, H) size for the figure
+                                 figSize=(600,850*0.83), # (W, H) size for the figure
                                  fontsizeScale=1.6, # to be used with scalefontsizes(...)
                               )
     mkpath(outdir)
@@ -257,8 +283,11 @@ Translation table between the parameter names used in the code vs. in the paper:
 
     pTot = nothing
     try
+        local lmargin, tmargin, rmargin = 5mm, 5mm, 0mm
+        local tx, ty = -25mm, 4.5mm
+
         # Panel 1: One SSA trajectory
-        p1 = plot(; title=L"(a)", titlepos=:left)
+        p1 = plot(; left_margin=lmargin, top_margin=tmargin, right_margin=rmargin)
         plot!(t_ssa, mom_ssa[4,:], color="#585858", label=L"N", lw=1.,
                                           # legend=:topright,
                                           legend=:topleft,
@@ -269,7 +298,7 @@ Translation table between the parameter names used in the code vs. in the paper:
                                           legend=:topleft,
                                           )
         ylabel!("Number of cells")
-        xlabel!("Time [a.u.]")
+        # xlabel!("Time [a.u.]")
         y2 = twinx(p1)
         plot!(y2, t_ssa, mom_ssa[2,:];
                       color="magenta",
@@ -292,9 +321,17 @@ Translation table between the parameter names used in the code vs. in the paper:
         #                 formatter=:plain,
         #                 )
         ylabel!(y2, "Abundance")
+        plot!(; # Float title 
+            title=L"(a)", 
+            titlepos=:left, 
+            grid=false, showaxis=false, ticks=false,
+            inset=(1, bbox(tx,ty, 20mm,20mm, :top, :left)), 
+            subplot=3,
+            bg_inside=nothing,
+            )
 
         # Panel 2: Averages
-        p2 = plot(; title=L"(b)", titlepos=:left)
+        p2 = plot(; left_margin=lmargin, top_margin=tmargin, right_margin=rmargin)
         plot!(time_all, Moms[4,:], ribbon=( sqrt.(Vars[4,:]), sqrt.(Vars[4,:]) ),
                                  fillalpha=fillalpha,
                                  color="black",
@@ -339,20 +376,28 @@ Translation table between the parameter names used in the code vs. in the paper:
         #                            )
 
         ylabel!(y2, "Abundance")
+        plot!(; # Float title 
+            title=L"(b)", 
+            titlepos=:left, 
+            grid=false, showaxis=false, ticks=false,
+            inset=(1, bbox(tx,ty, 20mm,20mm, :top, :left)), 
+            subplot=3,
+            bg_inside=nothing,
+            )
 
-        # Panel 4: PDF of numCells across trajectories
-        K = computeSummedPDF(n, 1; bandwidth=pdfBandwidth)
-        expectedMean = val_setpoint[end]
-        p3 = plot(; title=L"(c)", titlepos=:left)
-        plot!(K.x, K.density; color="green",
-                                label=L"pdf(N)",
-                                xlim=(max(0,minimum(K.x)),Inf),
-                                )
-        vline!([expectedMean]; color="black",
-                                linestyle=:dash,
-                                label=L"N^*")
-        xlabel!("Number of cells")
-        ylabel!("Probability density")
+        # # Panel 4: PDF of numCells across trajectories
+        # K = computeSummedPDF(n, 1; bandwidth=pdfBandwidth)
+        # expectedMean = val_setpoint[end]
+        # p3 = plot(; title=L"(c)", titlepos=:left)
+        # plot!(K.x, K.density; color="green",
+        #                         label=L"pdf(N)",
+        #                         xlim=(max(0,minimum(K.x)),Inf),
+        #                         )
+        # vline!([expectedMean]; color="black",
+        #                         linestyle=:dash,
+        #                         label=L"N^*")
+        # xlabel!("Number of cells")
+        # ylabel!("Probability density")
 
         ### Compose the subplots together
         pTot = plot(p1, p2, layout=(2,1), size=figSize, right_margin=25mm)

@@ -10,10 +10,14 @@
 Run `Nsamples` SSA trajectories with parameter `changes` (perturbations) at the
 given `durations` timepoints.
 """
-@export function SSA_perturbations(S::System, n0::Matrix{Int64},
-            durations::Vector{Float64}, changes::Vector{Float64},
-            Nsamples::Int64=100; timestep::Float64=0.1, seed::Union{Nothing,Int64}=nothing,
-            exportRawOutput::Bool=false)
+@export function SSA_perturbations(S::System, 
+                                    n0::Matrix{Int64},
+                                    durations::Vector{Float64}, 
+                                    changes::Vector{Float64},
+                                    Nsamples::Int64; 
+                                    timestep::Float64=0.1, 
+                                    seed::Union{Nothing,Int64}=nothing,
+                                    exportRawOutput::Bool=false)
     time_all,mm,t_setpoint,val_setpoint = SSA_perturbations(deepcopy(S),
                                                                 n0, durations, changes,
                                                                 timestep=timestep,
@@ -59,8 +63,13 @@ end
 Run one SSA trajectory with parameter `changes` (perturbations) at the given
 `durations` timepoints.
 """
-@export function SSA_perturbations(S::System, n0::Matrix{Int64}, durations::Vector{Float64}, changes::Vector{Float64};
-                timestep::Float64=0.1, seed::Union{Nothing,Int64}=nothing, asserting::Bool=true)
+@export function SSA_perturbations(S::System, 
+                                    n0::Matrix{Int64}, 
+                                    durations::Vector{Float64}, 
+                                    changes::Vector{Float64};
+                                    timestep::Float64=0.1, 
+                                    seed::Union{Nothing,Int64}=nothing, 
+                                    asserting::Bool=true)
     seed!=nothing ? Random.seed!(seed) : nothing
     asserting ? assert_model(S,n0) : nothing
     @assert length(durations)==length(changes) "Invalid setpoint input"
