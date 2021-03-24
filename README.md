@@ -25,6 +25,16 @@ This will download, install and precompile all the dependencies.
 The code is structured as a main module `SAIC` which directly exposes
 the main data structures and SSA features and additional submodules `Models` and `Figures`.
 
+#### Sequential execution
+It is possible to run the trajectories sequentially by running (in the repository directory):
+```
+julia --project
+```
+```julia
+import SAIC
+```
+
+#### Parallel execution
 Running SSA trajectories in parallel is supported through Julia's `Distributed` 
 features.  
 Please note that it requires specifying the number of worker processes when launching Julia:
@@ -35,7 +45,9 @@ Running simulations in parallel then requires the following lines of code to be 
 before running any simulation:
 ```julia
 using Distributed
-@everywhere include("SAIC.jl")
+@everywhere import Pkg
+@everywhere Pkg.activate(".")
+import SAIC
 ```
 
 ### Generating the paper figures
@@ -48,7 +60,10 @@ julia -p auto
 and
 ```julia
 using Distributed
-@everywhere include("SAIC.jl")
+@everywhere import Pkg
+@everywhere Pkg.activate(".")
+import SAIC
+
 SAIC.Figures.MassControl()
 SAIC.Figures.NumberControl()
 ```
@@ -60,3 +75,5 @@ To load the results from these saves, use the `loadFromDump=true` flag:
 SAIC.Figures.MassControl(; loadFromDump=true)
 SAIC.Figures.NumberControl(; loadFromDump=true)
 ```
+The figure generation is a sequential operation, so it is fine to launch julia
+as a single process (see Sequential execution).
