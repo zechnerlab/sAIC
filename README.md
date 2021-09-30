@@ -31,7 +31,7 @@ It is possible to run the trajectories sequentially by running (in the repositor
 julia --project
 ```
 ```julia
-import SAIC
+using SAIC
 ```
 
 #### Parallel execution
@@ -47,8 +47,13 @@ before running any simulation:
 using Distributed
 @everywhere import Pkg
 @everywhere Pkg.activate(".")
-import SAIC
+@everywhere using SAIC	# Repeat this if it fails on the first attempt
 ```
+
+Note that depending on the Julia version and if Revise is in use, the 
+`@everywhere using SAIC` command may fail throwing errors related to compilecache.
+It is usually sufficient to run `@everywhere using SAIC` a second time to succeed
+in loading the package on all workers.
 
 ### Generating the paper figures
 The functions generating the figures for the paper are available in the 
@@ -62,18 +67,18 @@ and
 using Distributed
 @everywhere import Pkg
 @everywhere Pkg.activate(".")
-import SAIC
+@everywhere using SAIC	# Repeat this if it fails on the first attempt
 
-SAIC.Figures.MassControl()
-SAIC.Figures.NumberControl()
+Figures.MassControl()
+Figures.NumberControl()
 ```
 
 The simulation results are also serialized and saved into `*.jser` files, so that 
 tweaking of the plots does not require running the SSAs all over again.  
 To load the results from these saves, use the `loadFromDump=true` flag:
 ```julia
-SAIC.Figures.MassControl(; loadFromDump=true)
-SAIC.Figures.NumberControl(; loadFromDump=true)
+Figures.MassControl(; loadFromDump=true)
+Figures.NumberControl(; loadFromDump=true)
 ```
 The figure generation is a sequential operation, so it is fine to launch julia
 as a single process (see Sequential execution).

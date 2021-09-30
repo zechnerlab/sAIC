@@ -10,17 +10,19 @@
 Run `Nsamples` SSA trajectories with parameter `changes` (perturbations) at the
 given `durations` timepoints.
 """
-@export function SSA_perturbations(S::System, 
+@export function SSA_perturbations(S::System,
                                     n0::Matrix{Int64},
-                                    durations::Vector{Float64}, 
+                                    durations::Vector{Float64},
                                     changes::Vector{Float64},
-                                    Nsamples::Int64; 
-                                    timestep::Float64=0.1, 
+                                    Nsamples::Int64;
+                                    transitionClassIndex::Int=1,
+                                    timestep::Float64=0.1,
                                     seed::Union{Nothing,Int64}=nothing,
                                     exportRawOutput::Bool=false)
     time_all,mm,t_setpoint,val_setpoint = SSA_perturbations(deepcopy(S),
                                                                 n0, durations, changes,
                                                                 timestep=timestep,
+                                                                transitionClassIndex=transitionClassIndex,
                                                                 asserting=true)
     # Prepare futures array and spawn the processes
     F = []
@@ -28,19 +30,23 @@ given `durations` timepoints.
         fut = @spawnat :any SSA_perturbations(deepcopy(S),
                                                         n0, durations, changes,
                                                         timestep=timestep,
+                                                        transitionClassIndex=transitionClassIndex,
                                                         asserting=false)
         push!(F, fut)
     end
+    
     # Now prepare to collect the results
-    MM=zeros(length(keys(S.MomDict)),length(time_all))
-    MM2=copy(MM)
+    MM = zeros(length(keys(S.MomDict)),length(time_all))
+    MM2 = copy(MM)
+    
     # Take care of the raw output
     n = nothing
     if exportRawOutput
         # The n layout is (Species, Cells)(Trajectories)
         n = [ zeros(Int64, size(n0)) for i=1:Nsamples ]
     end
-    #
+    
+    # Collect the results
     for i=1:Nsamples
         tt, Mi, ts, vs, n_local = fetch(F[i])
         println("SSA simulation # $i")
@@ -49,10 +55,10 @@ given `durations` timepoints.
         end
         MM .+= Mi
         MM2 .+= Mi.^2
-        # [Mi, Mi.^2] # This must be the last line of the loop block for the reduction to work!
     end
-    MMav=MM/Nsamples
-    MMvar=MM2/(Nsamples-1)-(MM.^2)/(Nsamples*(Nsamples-1))
+
+    MMav = MM/Nsamples
+    MMvar = MM2/(Nsamples-1)-(MM.^2)/(Nsamples*(Nsamples-1))
     return time_all, MMav, MMvar, t_setpoint, val_setpoint, n
 end
 
@@ -63,12 +69,13 @@ end
 Run one SSA trajectory with parameter `changes` (perturbations) at the given
 `durations` timepoints.
 """
-@export function SSA_perturbations(S::System, 
-                                    n0::Matrix{Int64}, 
-                                    durations::Vector{Float64}, 
+@export function SSA_perturbations(S::System,
+                                    n0::Matrix{Int64},
+                                    durations::Vector{Float64},
                                     changes::Vector{Float64};
-                                    timestep::Float64=0.1, 
-                                    seed::Union{Nothing,Int64}=nothing, 
+                                    transitionClassIndex::Int=1,
+                                    timestep::Float64=0.1,
+                                    seed::Union{Nothing,Int64}=nothing,
                                     asserting::Bool=true)
     seed!=nothing ? Random.seed!(seed) : nothing
     asserting ? assert_model(S,n0) : nothing
@@ -82,7 +89,7 @@ Run one SSA trajectory with parameter `changes` (perturbations) at the given
     t_setpoint=Vector{Float64}()
     val_setpoint=Vector{Float64}()
     for i=1:LL
-        S.transition_classes[1].k *= changes[i]
+        S.transition_classes[transitionClassIndex].k *= changes[i]
         timepoints=collect(t_start:timestep:t_start+durations[i])
         push!(t_setpoint,t_start); push!(val_setpoint,S.transition_classes[1].k/S.transition_classes[2].k)
         push!(t_setpoint,timepoints[end]); push!(val_setpoint,S.transition_classes[1].k/S.transition_classes[2].k)
@@ -104,9 +111,7 @@ end
     MM, MM2 = @distributed (+) for i=1:Nsamples
         println("SSA simulation # $i")
         n,Mi=SSA(S,n0,timepoints,asserting=false)
-        # MM .+= Mi
-        # MM2 .+= Mi.^2
-        [Mi, Mi.^2]
+        [Mi, Mi.^2] # Reduction will occur on these values
     end
     MMav=MM/Nsamples
     MMvar=MM2/(Nsamples-1)-(MM.^2)/(Nsamples*(Nsamples-1))
@@ -196,6 +201,7 @@ end
                 time_index+=1
                 time_index>maxiters ? (println("OVERFLOW! Increase maxiters");simulation_flag=false;break) : nothing
             end
+            #println("t=",simtime," Z1tot=",Mom[2]," Z2tot=",Mom[3]," N=", Mom[4]," X2tot=",Mom[6])
         end
     end
     #println(class_counter)
